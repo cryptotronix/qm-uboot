@@ -8,14 +8,25 @@
 #include <dm/uclass.h>
 #include <i2c.h>
 #include <mach/sys_proto.h>
+#include <string.h>
+#include <stdbool.h>
+
+unsigned char default_ethaddr[6] = {
+	0x70, 0xb3, 0xd5, 0x0d, 0xb0, 0x00
+};
 
 int zynq_board_read_rom_ethaddr(unsigned char *ethaddr)
 {
-	int ret = -EINVAL;
+	int ret = 0;
+
+	// always set to default ethaddr
+	memcpy(ethaddr, default_ethaddr, 6);
 
 #if defined(CONFIG_ZYNQ_GEM_I2C_MAC_OFFSET)
 	struct udevice *dev;
 	ofnode eeprom;
+	unsigned char tmp_ethaddr[6] = {0};
+	bool ethaddr_is_valid = true;
 
 	eeprom = ofnode_get_chosen_node("xlnx,eeprom");
 	if (!ofnode_valid(eeprom))
@@ -28,11 +39,28 @@ int zynq_board_read_rom_ethaddr(unsigned char *ethaddr)
 	if (ret)
 		return ret;
 
-	ret = dm_i2c_read(dev, CONFIG_ZYNQ_GEM_I2C_MAC_OFFSET, ethaddr, 6);
+	ret = dm_i2c_read(dev, CONFIG_ZYNQ_GEM_I2C_MAC_OFFSET, tmp_ethaddr, 6);
 	if (ret)
 		debug("%s: I2C EEPROM MAC address read failed\n", __func__);
 	else
 		debug("%s: I2C EEPROM MAC %pM\n", __func__, ethaddr);
+
+	// check to see if the i2c ethaddr is within the default
+	for (int i = 0; i < 6; i++)
+	{
+		if ((tmp_ethaddr[i] & default_ethaddr[i]) != default_ethaddr[i])
+		{
+			ethaddr_is_valid = false;
+			break;
+		}
+	}
+
+	if (ethaddr_is_valid)
+	{
+		// write the address read from i2c
+		memcpy(ethaddr, tmp_ethaddr, 6);
+	}
+
 #endif
 
 	return ret;
