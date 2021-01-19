@@ -220,6 +220,7 @@
 /* Default environment */
 #ifndef CONFIG_EXTRA_ENV_SETTINGS
 #define CONFIG_EXTRA_ENV_SETTINGS	\
+	"silent=1\0" \
 	"kernel_image=uImage\0"	\
 	"kernel_load_address=0x2080000\0" \
 	"ramdisk_image=uramdisk.image.gz\0"	\
