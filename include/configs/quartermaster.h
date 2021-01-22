@@ -9,6 +9,16 @@
 #ifndef __CONFIG_ZYNQ_COMMON_H
 #define __CONFIG_ZYNQ_COMMON_H
 
+#if defined(CONFIG_SILENT_CONSOLE)
+# define QM_BOOTARGS \
+	"silent=1\0" \
+	"bootargs=quiet loglevel=0 systemd.show_status=0\0"
+#else
+# define QM_BOOTARGS \
+	"bootargs=earlycon\0"
+#endif
+
+
 /* CPU clock */
 #ifndef CONFIG_CPU_FREQ_HZ
 # define CONFIG_CPU_FREQ_HZ	800000000
@@ -220,7 +230,7 @@
 /* Default environment */
 #ifndef CONFIG_EXTRA_ENV_SETTINGS
 #define CONFIG_EXTRA_ENV_SETTINGS	\
-	"silent=1\0" \
+	QM_BOOTARGS \
 	"kernel_image=uImage\0"	\
 	"kernel_load_address=0x2080000\0" \
 	"ramdisk_image=uramdisk.image.gz\0"	\
